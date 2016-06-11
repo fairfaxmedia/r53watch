@@ -9,8 +9,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ["John Slee"]
   spec.email         = ["john.slee@fairfaxmedia.com.au"]
 
-  spec.summary       = %q{Check that your zones are actually delegated to AWS Route53}
-  spec.description   = %q{Check that your zones are actually delegated to AWS Route53}
+  spec.summary       = %q{Check that your zones are actually delegated to AWS Route53 correctly}
+  spec.description   = %q{Check that your zones are actually delegated to AWS Route53 correctly}
   spec.homepage      = "https://github.com/indigoid/r53watch"
   spec.license       = "MIT"
 
