@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require "r53watch"
+
+R53Watch::R53Watch.start(ARGV)
