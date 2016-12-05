@@ -15,7 +15,11 @@ Iterates over all hosted zones in your AWS account and:
 
 ## Usage
 
-Make sure your AWS credentials are setup, eg. via `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables.
+Make sure your AWS credentials are setup, at a minimum these environment variables:
+
+* `AWS_ACCESS_KEY_ID` 
+* `AWS_SECRET_ACCESS_KEY`
+* `AWS_REGION`
 
 Then run it, and if you have more than a few zones, save the output to a file:
 
