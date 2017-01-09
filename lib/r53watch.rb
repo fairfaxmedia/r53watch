@@ -10,7 +10,7 @@ module R53Watch
   class R53Watch < Thor
     option :verbose, :type => :boolean, :default => false, :desc => 'Verbose output'
     desc 'check_delegation', 'checks delegation for all Route53-hosted zones'
-    
+
     # deliberately NOT trying to make this fast... because Route53 rate limiting
     def check_delegation
       route53.list_hosted_zones.each_page do |page|
@@ -35,7 +35,7 @@ module R53Watch
                 ok &&= (delegation == ns_dns)
                 ns_dns_status << "#{ns}#{delegation == ns_dns ? "" : "(MISMATCH!)"}"
               end
-              
+
               # check that delegating nameservers all agree too, if there's any point
               if ns_dns.size > 0
                 delegation_ok = check_zone_delegation_consistent(zone.name, ns_dns)
@@ -48,7 +48,7 @@ module R53Watch
               r53_status = "R53=#{ns_route53.join(',')}"
               dns_status = "DNS=#{ns_dns_status.join(',')}"
               delegation_status = "Delegation=#{delegation_ok ? "ok" : "MISMATCH!"}"
-              puts [ (ok ? "OK   " : "FAIL "), zone.name, r53_status, dns_status, delegation_status, ].join(' ')
+              puts [ (ok ? "OK   " : "FAIL "), zone.id, zone.name, r53_status, dns_status, delegation_status, ].join(' ')
             rescue SystemExit,Interrupt
               puts "Aborted."
               exit
