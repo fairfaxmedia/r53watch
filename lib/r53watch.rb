@@ -13,49 +13,48 @@ module R53Watch
 
     # deliberately NOT trying to make this fast... because Route53 rate limiting
     def check_delegation
-      route53.list_hosted_zones.each_page do |page|
-        page.each do |page_resp|
-          page_resp[:hosted_zones].each do |zone|
-            begin
-              puts "Checking #{zone.name}" if options[:verbose]
-              # nameservers from route53
-              ns_route53 = zone_nameservers_route53(zone.id,zone.name)
-              puts "* NS from Route53 record: #{ns_route53.join(' ')}" if options[:verbose]
+      route53.list_hosted_zones.each do |response|
+        response[:hosted_zones].each do |zone|
+          begin
+            puts "Checking #{zone.name}" if options[:verbose]
+            # nameservers from route53
+            ns_route53 = zone_nameservers_route53(zone.id,zone.name)
+            puts "* NS from Route53 record: #{ns_route53.join(' ')}" if options[:verbose]
 
-              # nameservers from our usual recursive resolver
-              ns_dns = zone_nameservers_dns(zone.name)
-              puts "* NS from DNS: #{ns_dns.join(' ')}" if options[:verbose]
+            # nameservers from our usual recursive resolver
+            ns_dns = zone_nameservers_dns(zone.name)
+            puts "* NS from DNS: #{ns_dns.join(' ')}" if options[:verbose]
 
-              # check that all returned nameservers agree with each other
-              ns_dns_status = []
-              ok = ns_route53 == ns_dns
-              ns_dns.each do |ns|
-                delegation = zone_nameservers_dns(zone.name,ns)
-                puts "* NS from DNS at #{ns}: #{ns_dns.join(' ')}" if options[:verbose]
-                ok &&= (delegation == ns_dns)
-                ns_dns_status << "#{ns}#{delegation == ns_dns ? "" : "(MISMATCH!)"}"
-              end
-
-              # check that delegating nameservers all agree too, if there's any point
-              if ns_dns.size > 0
-                delegation_ok = check_zone_delegation_consistent(zone.name, ns_dns)
-              else
-                delegation_ok = false
-              end
-              ok &&= delegation_ok
-
-              # log output
-              r53_status = "R53=#{ns_route53.join(',')}"
-              dns_status = "DNS=#{ns_dns_status.join(',')}"
-              delegation_status = "Delegation=#{delegation_ok ? "ok" : "MISMATCH!"}"
-              puts [ (ok ? "OK   " : "FAIL "), zone.id, zone.name, r53_status, dns_status, delegation_status, ].join(' ')
-            rescue SystemExit,Interrupt
-              puts "Aborted."
-              exit
-            rescue StandardError => e
-              # DNS timeouts etc
-              puts "ERROR #{zone.name} #{e.message}\n"
+            # check that all returned nameservers agree with each other
+            ns_dns_status = []
+            ok = ns_route53 == ns_dns
+            ns_dns.each do |ns|
+              delegation = zone_nameservers_dns(zone.name,ns)
+              puts "* NS from DNS at #{ns}: #{ns_dns.join(' ')}" if options[:verbose]
+              ok &&= (delegation == ns_dns)
+              ns_dns_status << "#{ns}#{delegation == ns_dns ? "" : "(MISMATCH!)"}"
             end
+
+            # check that delegating nameservers all agree too, if there's any point
+            if ns_dns.size > 0
+              delegation_ok = check_zone_delegation_consistent(zone.name, ns_dns)
+            else
+              delegation_ok = false
+            end
+            ok &&= delegation_ok
+
+            # log output
+            r53_status = "R53=#{ns_route53.join(',')}"
+            dns_status = "DNS=#{ns_dns_status.join(',')}"
+            delegation_status = "Delegation=#{delegation_ok ? "ok" : "MISMATCH!"}"
+            puts [ (ok ? "OK   " : "FAIL "), zone.id.sub!('/hostedzone/', ''), zone.name, r53_status, dns_status, delegation_status, ].join(' ')
+            # puts [ zone.id.sub!('/hostedzone/', ''), zone.name ].join(' ')
+          rescue SystemExit,Interrupt
+            puts "Aborted."
+            exit
+          rescue StandardError => e
+            # DNS timeouts etc
+            puts "ERROR #{zone.name} #{e.message}\n"
           end
         end
       end
@@ -64,7 +63,6 @@ module R53Watch
   private
     def route53
       @route53 ||= Aws::Route53::Client.new
-      @route53
     end
 
     def zone_nameservers_route53(id,name)
