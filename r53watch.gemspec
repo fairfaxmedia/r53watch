@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = %q{Check that your zones are actually delegated to AWS Route53 correctly}
   spec.description   = %q{Check that your zones are actually delegated to AWS Route53 correctly}
-  spec.homepage      = "https://github.com/indigoid/r53watch"
+  spec.homepage      = "https://github.com/fairfaxmedia/r53watch"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
